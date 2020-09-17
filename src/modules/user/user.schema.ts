@@ -14,5 +14,4 @@ export class User extends Document {
   @Prop()
   img: string;
 }
-
 export const UserSchema = SchemaFactory.createForClass(User);

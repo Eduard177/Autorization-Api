@@ -9,10 +9,10 @@ export class UserController {
 
   @Post('create')
   async createUser(@Res() res, @Body() createUserDTO: CreateUserDTO) {
-    this.userService.create(createUserDTO);
+    await this.userService.create(createUserDTO);
     res.status(201).json({
-      ok: true,
-      message: 'received',
+      statusCode: 201,
+      message: 'User Created',
     });
   }
 }

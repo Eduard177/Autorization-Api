@@ -5,3 +5,9 @@ export class CreateUserDTO {
   password: string;
   img: string;
 }
+
+export class UserDTO {
+  email: string;
+  readonly id: number;
+  password: string;
+}

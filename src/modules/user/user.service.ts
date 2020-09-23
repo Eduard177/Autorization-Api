@@ -48,10 +48,13 @@ export class UserService {
   async getByEmail(email: string, id: number) {
     const user = await this.userModel.findOne({ email: email });
     if (user) {
-      if(user.id = id){
-        await this.getById(id);
+      if(user.id == id){
+        new HttpException('User Exist', HttpStatus.OK)
         return user;
+      }else{
+        throw new HttpException('This id does not match with this email', HttpStatus.NOT_FOUND)
       }
+
     }
     throw new HttpException(
       'User with this email does not exist',

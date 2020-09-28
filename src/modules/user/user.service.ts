@@ -1,9 +1,10 @@
 import { Model } from 'mongoose';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectModel} from '@nestjs/mongoose';
 import { User } from './user.schema';
-import { CreateUserDTO } from '../dto/user.dto';
-import { compareSync, hashSync } from 'bcrypt';
+import { CreateUserDTO,} from '../dto/user.dto';
+import { hashSync } from 'bcrypt';
+
 
 @Injectable()
 export class UserService {
@@ -36,48 +37,4 @@ export class UserService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  }
-  //login
-  async getAuthenticatedUser(email: string, id: number,password: string) {
-    const user = await this.getByEmail(email, id);
-    await this.verifyPassword( password, user.password);
-  }
-
-  //Methos
-
-  async getByEmail(email: string, id: number) {
-    const user = await this.userModel.findOne({ email: email });
-    if (user) {
-      if(user.id == id){
-        new HttpException('User Exist', HttpStatus.OK)
-        return user;
-      }else{
-        throw new HttpException('This id does not match with this email', HttpStatus.NOT_FOUND)
-      }
-
-    }
-    throw new HttpException(
-      'User with this email does not exist',
-      HttpStatus.NOT_FOUND,
-    );
-  }
-  async getById(id: number) {
-    const userId = await this.userModel.findOne({id: id});
-    if (userId) {
-      return userId;
-    }
-    throw new HttpException(
-      'User with this id does not exist',
-      HttpStatus.NOT_FOUND,
-    );
-  }
-  async verifyPassword(password: string, hashedPassword: string) {
-    const isPasswordMatching = await compareSync(password, hashedPassword);
-    if (!isPasswordMatching) {
-      throw new HttpException(
-        'Wrong credential provided',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
-}
+  }}

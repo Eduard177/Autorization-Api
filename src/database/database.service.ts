@@ -11,7 +11,8 @@ export const databaseProviders = [
             uri: configService.get(Configuration.MONGO_URI),
             useNewUrlParser:true,
             useUnifiedTopology:true,
-            useCreateIndex:true
+            useCreateIndex:true,
+            useFindAndModify: true
         }),
         
     }),

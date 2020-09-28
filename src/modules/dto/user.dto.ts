@@ -11,3 +11,8 @@ export class UserDTO {
   readonly id: number;
   password: string;
 }
+
+export class ForgetPasswordDTO{
+  readonly email: string;
+  newPassword: string;
+}

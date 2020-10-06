@@ -13,5 +13,7 @@ export class User extends Document {
   password: string;
   @Prop()
   img: string;
+  @Prop({default: 1})
+  loginTries: number
 }
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -1,22 +1,40 @@
-
 import { Model } from 'mongoose';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel} from '@nestjs/mongoose';
 import { User } from '../user/user.schema';
-import { ForgetPasswordDTO } from '../dto/user.dto';
+import { ForgetPasswordDTO} from '../dto/user.dto';
 import { compareSync, hashSync } from 'bcrypt';
 
 import * as nodemailer from 'nodemailer';
 
-let count = 1;
 @Injectable()
 export class AuthService {
     constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
     async getAuthenticatedUser(email: string, id: number,password: string) {
         const user = await this.getByEmail(email, id);
-        const passwordH = await this.verifyPassword( password, user.password);
-        await this.countTries(passwordH, email)
+
+        const isPasswordMatching = await compareSync(password, user.password);
+
+        if(user.loginTries >= 5){
+          this.sendEmailToMaxTries(email)
+         throw new HttpException(
+            'Maximum number of attempts',
+            HttpStatus.BAD_REQUEST,
+           );
+        }
+
+        if (!isPasswordMatching) {
+          user.loginTries = user.loginTries + 1;
+          user.save();
+         throw new HttpException(
+            'Wrong credential provided',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        return 'VALID USER';
+
       } 
     
       /////////////////////Did you forget your password?/////////////////////
@@ -147,29 +165,6 @@ export class AuthService {
           return false;  
         }
         return true;
-      }
-      async countTries(passwordH: boolean, email: string){
-        if(passwordH){
-          throw new HttpException(
-            'User Exist',
-            HttpStatus.OK,
-          );
-        }else{
-          
-          if(count >= 5){
-            this.sendEmailToMaxTries(email)
-            throw new HttpException(
-              'Maximum number of attempts',
-              HttpStatus.BAD_REQUEST,
-            );
-          }else{
-            count++
-            throw new HttpException(
-              'Wrong credential provided',
-              HttpStatus.BAD_REQUEST,
-            );
-          }
-        }
       }
 
       contentHtmlForget = `

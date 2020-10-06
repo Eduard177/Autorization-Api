@@ -15,16 +15,5 @@ export const databaseProviders = [
             useFindAndModify: true
         }),
         
-    }),
-    MongooseModule.forRootAsync({
-        imports: [ConfigModule],
-        inject: [ConfigService],
-        useFactory: async (configService: ConfigService) =>({
-            uri: configService.get(Configuration.MONGO_URI2),
-            useNewUrlParser:true,
-            useUnifiedTopology:true,
-            useCreateIndex:true
-        }),
-        
     })
 ]

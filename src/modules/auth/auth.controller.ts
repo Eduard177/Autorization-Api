@@ -1,4 +1,4 @@
-import { Body, Controller, Patch, Post} from '@nestjs/common';
+import { Body, Controller, Patch, Post, Get} from '@nestjs/common';
 import { ForgetPasswordDTO, UserDTO } from '../dto/user.dto';
 import { AuthService } from '../auth/auth.service';
 
@@ -6,9 +6,9 @@ import { AuthService } from '../auth/auth.service';
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
     
-    @Post('login')
+    @Get('login')
     async loginUser( @Body() userDTO: UserDTO) {
-      await this.authService.getAuthenticatedUser(userDTO.email, userDTO.id, userDTO.password);
+     return await this.authService.getAuthenticatedUser(userDTO.email, userDTO.id, userDTO.password);
     }
     @Post('send-email')
     async SendEmail( @Body() forgetPasswordDTO: ForgetPasswordDTO) {

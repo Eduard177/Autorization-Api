@@ -6,12 +6,18 @@ import { ForgetPasswordDTO} from '../dto/user.dto';
 import { compareSync, hashSync } from 'bcrypt';
 
 import * as nodemailer from 'nodemailer';
+import { JwtService } from '@nestjs/jwt';
+import { IJwtPayload } from './jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
-    constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+    constructor(
+      @InjectModel(User.name)
+      private userModel: Model<User>,
+      private readonly _jwtService:JwtService,
+      ) {}
 
-    async getAuthenticatedUser(email: string, id: number,password: string) {
+    async getAuthenticatedUser(email: string, id: number,password: string):Promise<{token: string}> {
         const user = await this.getByEmail(email, id);
 
         const isPasswordMatching = await compareSync(password, user.password);
@@ -34,10 +40,17 @@ export class AuthService {
             HttpStatus.BAD_REQUEST,
           );
         }
+
+        const payload: IJwtPayload = {
+          name: user.name,
+          email: user.email,
+          id: user.id
+        }
         user.isBlocked = false;
         user.loginTries = 0;
         user.save();
-        return 'VALID USER';
+        const token = await this._jwtService.sign(payload);
+        return {token};
 
       } 
     

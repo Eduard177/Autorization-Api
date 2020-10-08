@@ -17,6 +17,8 @@ export class AuthService {
         const isPasswordMatching = await compareSync(password, user.password);
 
         if(user.loginTries >= 5){
+          user.isBlocked = true;
+          user.save();
           this.sendEmailToMaxTries(email)
          throw new HttpException(
             'Maximum number of attempts',
@@ -32,7 +34,9 @@ export class AuthService {
             HttpStatus.BAD_REQUEST,
           );
         }
-
+        user.isBlocked = false;
+        user.loginTries = 0;
+        user.save();
         return 'VALID USER';
 
       } 

@@ -13,7 +13,9 @@ export class User extends Document {
   password: string;
   @Prop()
   img: string;
-  @Prop({default: 1})
+  @Prop({default: 0})
   loginTries: number
+  @Prop({default: false})
+  isBlocked: boolean;
 }
 export const UserSchema = SchemaFactory.createForClass(User);

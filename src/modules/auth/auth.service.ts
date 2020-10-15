@@ -1,5 +1,5 @@
 import { Model } from 'mongoose';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel} from '@nestjs/mongoose';
 import { User } from '../user/schemas/user.schema';
 import { ForgetPasswordDTO} from '../dto/user.dto';
@@ -18,27 +18,21 @@ export class AuthService {
       ) {}
 
     async getAuthenticatedUser(email: string, id: number,password: string):Promise<{token: string}> {
-        const user = await this.getByEmail(email, id);
-
-        const isPasswordMatching = await compareSync(password, user.password);
-
-        if(user.loginTries >= 5){
+      await this.userExist(email)
+      const user = await this.getByEmail(email, id);
+      const isPasswordMatching = compareSync(password, user.password);
+      
+      if(user.loginTries >= 5){
           user.isBlocked = true;
           user.save();
           this.sendEmailToMaxTries(email)
-         throw new HttpException(
-            'Maximum number of attempts',
-            HttpStatus.BAD_REQUEST,
-           );
+          throw new BadRequestException('Maximum number of attempts');
         }
 
         if (!isPasswordMatching) {
           user.loginTries = user.loginTries + 1;
           user.save();
-         throw new HttpException(
-            'Wrong credential provided',
-            HttpStatus.BAD_REQUEST,
-          );
+          throw new NotFoundException('Wrong credential provided');
         }
 
         const payload: IJwtPayload = {
@@ -74,10 +68,7 @@ export class AuthService {
       async forgetPassword(forgetPasswordDTO: ForgetPasswordDTO){
         const user = await this.userModel.findOne({ email: forgetPasswordDTO.email });
         if(forgetPasswordDTO.newPassword == ""){
-          throw new HttpException(
-            'Password cannot be empty',
-            HttpStatus.BAD_REQUEST,
-          );
+          throw new BadRequestException('Password cannot be empty');
         }
         if(user){
             this.userModel.updateOne({email:forgetPasswordDTO.email},{
@@ -95,10 +86,7 @@ export class AuthService {
               HttpStatus.OK,)
           
         }else{
-          throw new HttpException(
-            'Wrong credential provided',
-            HttpStatus.BAD_REQUEST,
-          );
+          throw new BadRequestException('Wrong credential provided');
         }
       }
     
@@ -153,35 +141,35 @@ export class AuthService {
             new HttpException('User Exist', HttpStatus.OK)
             return user;
           }else{
-            throw new HttpException('Wrong credential provided', HttpStatus.NOT_FOUND)
+            throw new NotFoundException('Wrong credential provided');
           }
     
         }
-        throw new HttpException(
-          'Wrong credential provided',
-          HttpStatus.NOT_FOUND,
-        );
+        throw new NotFoundException('Wrong credential provided');
+        
       }
       async getById(id: number) {
         const userId = await this.userModel.findOne({id: id});
         if (userId) {
           return userId;
         }
-        throw new HttpException(
-          'User with this id does not exist',
-          HttpStatus.NOT_FOUND,
-        );
+        throw new NotFoundException('User with this id does not exist');
       }
       async verifyPassword(password: string, hashedPassword: string) {
-        const isPasswordMatching = await compareSync(password, hashedPassword);
+        const isPasswordMatching = compareSync(password, hashedPassword);
         if (!isPasswordMatching) {
-          new HttpException(
-            'Wrong credential provided',
-            HttpStatus.BAD_REQUEST,
-          );
+          new BadRequestException('Maximum number of attempts');
           return false;  
         }
         return true;
+      }
+
+      async userExist(email: string){
+        const userExist = await this.userModel.findOne({email})
+        if(!userExist.status){
+            throw new NotFoundException("This user has be deleted");
+        }
+        return;
       }
 
       contentHtmlForget = `

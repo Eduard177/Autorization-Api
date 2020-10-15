@@ -5,7 +5,8 @@ export class CreateUserDTO {
   password: string;
   img: string;
   loginTries: number;
-  isBlocked: boolean
+  isBlocked: boolean;
+  status: boolean;
 }
 
 export class UserDTO {
@@ -14,6 +15,7 @@ export class UserDTO {
   password: string;
   loginTries: number;
   isBlocked: boolean;
+  status: boolean;
 }
 
 export class ForgetPasswordDTO{

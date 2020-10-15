@@ -17,5 +17,7 @@ export class User extends Document {
   loginTries: number
   @Prop({default: false})
   isBlocked: boolean;
+  @Prop({default: true})
+  status: boolean
 }
 export const UserSchema = SchemaFactory.createForClass(User);

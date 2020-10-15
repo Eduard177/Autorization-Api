@@ -4,8 +4,8 @@ import { InjectModel} from '@nestjs/mongoose';
 import { User } from '../user/schemas/user.schema';
 import { ForgetPasswordDTO} from '../dto/user.dto';
 import { compareSync, hashSync } from 'bcrypt';
+import { MailManagerService } from '../auth/mail-manager/mail-manager.service'
 
-import * as nodemailer from 'nodemailer';
 import { JwtService } from '@nestjs/jwt';
 import { IJwtPayload } from './jwt-payload.interface';
 
@@ -15,6 +15,7 @@ export class AuthService {
       @InjectModel(User.name)
       private userModel: Model<User>,
       private readonly _jwtService:JwtService,
+      private readonly mailManagerService: MailManagerService
       ) {}
 
     async getAuthenticatedUser(email: string, id: number,password: string):Promise<{token: string}> {
@@ -25,7 +26,7 @@ export class AuthService {
       if(user.loginTries >= 5){
           user.isBlocked = true;
           user.save();
-          this.sendEmailToMaxTries(email)
+          this.mailManagerService.sendEmailToMaxTries(email)
           throw new BadRequestException('Maximum number of attempts');
         }
 
@@ -46,25 +47,10 @@ export class AuthService {
         const token = await this._jwtService.sign(payload);
         return {token};
 
-      } 
+    } 
     
       /////////////////////Did you forget your password?/////////////////////
     
-      async sendEmail(forgetPasswordDTO: ForgetPasswordDTO){
-        const user = await this.userModel.findOne({ email: forgetPasswordDTO.email });
-        if(user){
-          await this.sendEmailToForget(forgetPasswordDTO)
-          throw new HttpException(
-           `Send Email to ${forgetPasswordDTO.email}`,
-            HttpStatus.OK,
-          );
-        }else{
-          throw new HttpException(
-            'User with this email does not exist',
-            HttpStatus.NOT_FOUND,
-          );
-        }
-      }
       async forgetPassword(forgetPasswordDTO: ForgetPasswordDTO){
         const user = await this.userModel.findOne({ email: forgetPasswordDTO.email });
         if(forgetPasswordDTO.newPassword == ""){
@@ -91,49 +77,7 @@ export class AuthService {
       }
     
       /////////////////////Methos/////////////////////
-    
-      async sendEmailToForget(forgetPasswordDTO: ForgetPasswordDTO) {
-       const transporter = nodemailer.createTransport({
-          host: "smtp.ethereal.email",
-          port: 587,
-          secure: false,
-          auth: {
-            user: 'judson76@ethereal.email',
-            pass: 'HQuUDwtRXwMhAeT8GT'
-          }
-        });
-    
-        const info = await transporter.sendMail({
-          from: "'MMG enterprise' <freida91@ethereal.email>",
-          to: `${forgetPasswordDTO.email}`,
-          subject: 'forget password',
-          html: this.contentHtmlForget
-        });
-    
-        console.log('Message sent', info.messageId);
-      }
-
-      async sendEmailToMaxTries(email: string) {
-        const transporter = nodemailer.createTransport({
-           host: "smtp.ethereal.email",
-           port: 587,
-           secure: false,
-           auth: {
-             user: 'judson76@ethereal.email',
-             pass: 'HQuUDwtRXwMhAeT8GT'
-           }
-         });
-     
-         const info = await transporter.sendMail({
-           from: "'MMG enterprise' <freida91@ethereal.email>",
-           to: `${email}`,
-           subject: 'Intruder?',
-           html: this.contentHtmlMaxTries
-         });
-     
-         console.log('Message sent', info.messageId);
-       }
-    
+      
       async getByEmail(email: string, id: number) {
         const user = await this.userModel.findOne({ email: email });
         if (user) {
@@ -172,12 +116,4 @@ export class AuthService {
         return;
       }
 
-      contentHtmlForget = `
-    <h1><b>Change your password</b></h1>
-    <a href="http://localhost:3000/api/users/password/new"><b>New Password</b></a>
-    `
-    
-    contentHtmlMaxTries= `
-    <h1><b>someone is trying to enter your account, Is you?</b></h1>
-    `
 }

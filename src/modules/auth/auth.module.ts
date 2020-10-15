@@ -9,6 +9,8 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from 'src/config/config.module';
 import { Configuration } from 'src/config/config.keys';
+import { MailManagerModule } from './mail-manager/mail-manager.module';
+import { MailManagerService } from './mail-manager/mail-manager.service';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
@@ -24,10 +26,11 @@ import { Configuration } from 'src/config/config.keys';
         signOptions: {
           expiresIn: 3600}   
       }),
-    })
+    }),
+    MailManagerModule
     ],
   controllers: [AuthController],
-  providers: [AuthService,  JwtStrategy,ConfigService],
+  providers: [AuthService,  JwtStrategy,ConfigService, MailManagerService],
   exports: [ PassportModule, JwtStrategy ],
 })
 export class AuthModule {}

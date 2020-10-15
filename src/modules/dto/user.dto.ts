@@ -10,6 +10,7 @@ export class CreateUserDTO {
 }
 
 export class UserDTO {
+  name: string;
   email: string;
   readonly id: number;
   password: string;

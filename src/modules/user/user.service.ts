@@ -62,7 +62,14 @@ export class UserService {
     await this.userExist(email);
     await this.hasUserBeenDeleted(email);
     const user = await this.userModel.findOne({email});
-    const profile = [user.name, user.email, user.img, user.status, user.id, user.isBlocked]
+    const profile = 
+     [{name:user.name,
+       email:user.email,
+       img:user.img,
+       status:user.status,
+       id: user.id,
+       isBlocked:user.isBlocked
+     }]
     return profile
   }
 

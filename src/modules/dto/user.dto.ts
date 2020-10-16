@@ -17,6 +17,7 @@ export class UserDTO {
   loginTries: number;
   isBlocked: boolean;
   status: boolean;
+  img: string
 }
 
 export class ForgetPasswordDTO{

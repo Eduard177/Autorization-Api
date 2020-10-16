@@ -12,7 +12,7 @@ export class UserService {
   ) {} 
   async create(createUserDTO: CreateUserDTO): Promise<User> {
     await this.getUserById(createUserDTO.id);
-    await this.getUserByEmail(createUserDTO.email);
+    await this.userEmail(createUserDTO.email);
     const createdUser = await this.userModel.create(createUserDTO);
     createdUser.password = await this.hash(createUserDTO.password);
     await createdUser.save();
@@ -33,12 +33,6 @@ export class UserService {
     await this.userModel.updateOne({email},{status:false});
   };
 
-  async hash(data: string):Promise<string>{
-    const salt = genSaltSync(10);
-    const hash = hashSync(data, salt);
-    return hash;
-  };
-  
   async getUserById(id: number): Promise<User> {
     if(!id){
       throw new BadRequestException ('id must be send');
@@ -50,7 +44,7 @@ export class UserService {
     throw new BadRequestException('id is already use');
   };
 
-  async getUserByEmail(email: string): Promise<User> {
+  async userEmail(email: string): Promise<User> {
     if(!email){
       throw new BadRequestException ('email must be send');
     };
@@ -60,6 +54,17 @@ export class UserService {
     };
     throw new BadRequestException('email is already use');
   };
+
+  async getUserByEmail(email: string){
+    if(!email){
+      throw new BadRequestException ('email must be send');
+    };
+    await this.userExist(email);
+    await this.hasUserBeenDeleted(email);
+    const user = await this.userModel.findOne({email});
+    const profile = [user.name, user.email, user.img, user.status, user.id, user.isBlocked]
+    return profile
+  }
 
   async userExist(email: string){
     const userExist = await this.userModel.findOne({email})
@@ -83,5 +88,11 @@ export class UserService {
     throw new BadRequestException('Incorrect password');
     };
     return;
+  };
+
+  async hash(data: string):Promise<string>{
+    const salt = genSaltSync(10);
+    const hash = hashSync(data, salt);
+    return hash;
   };
 }

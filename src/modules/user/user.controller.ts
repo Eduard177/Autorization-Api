@@ -1,4 +1,4 @@
-import { Controller, Post, Res, Body, Patch,} from '@nestjs/common';
+import { Controller, Post, Res, Body, Patch, Get,} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDTO, UserDTO } from '../dto/user.dto';
 ;
@@ -14,6 +14,11 @@ export class UserController {
       statusCode: 201,
       message: 'User Created',
     });
+  };
+  @Get('profile')
+  async getUser( @Body() userDto: UserDTO ){
+   const user = await this.userService.getUserByEmail(userDto.email)  
+   return user;
   }
   @Patch('delete')
   async deleteUser(@Res() res, @Body() userDto: UserDTO){
@@ -22,7 +27,7 @@ export class UserController {
       statusCode: 200,
       message: 'User Delete',
     });
-  }
+  };
   @Patch('update')
   async updateUser(@Res() res, @Body() userDTO: UserDTO){
     await this.userService.updateUser(userDTO.email,userDTO.password, userDTO.name)
@@ -30,5 +35,5 @@ export class UserController {
       statusCode: 200,
       message: 'User Update',
     });
-  }
+  };
 }
